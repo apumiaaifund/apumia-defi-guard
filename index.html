@@ -1,67 +1,43 @@
-<!DOCTYPE html>
-<html lang="ru"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>APUMIA DeFi & RWA Invariant Guard — AMES v2.0</title>
-<style>
-:root{--bg:#0b0f17;--panel:#131a26;--border:#233044;--text:#e6edf7;--muted:#8b9bb4;--accent:#3b82f6;--pass:#10b981;--warn:#f59e0b;--block:#ef4444;--mono:ui-monospace,Menlo,monospace;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:var(--sans);padding:20px;line-height:1.45}.wrap{max-width:1120px;margin:0 auto}
-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:18px}
-.badge{font-family:var(--mono);font-size:12px;padding:3px 8px;border-radius:4px;background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.35)}
-h1{font-size:21px;margin-top:6px}.sub{color:var(--muted);font-size:13px}
-.lang button{background:var(--panel);color:var(--muted);border:1px solid var(--border);padding:6px 12px;cursor:pointer;font-family:var(--mono);font-weight:700}.lang button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}@media(max-width:900px){.grid{grid-template-columns:1fr}}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px}.card h2{font-size:13px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
-.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.m-btn{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:9px;border-radius:6px;cursor:pointer;text-align:left}.m-btn.active{border-color:var(--accent);background:rgba(59,130,246,.14)}
-.m-btn strong{display:block;font-family:var(--mono);font-size:12px}.m-btn span{font-size:11px;color:var(--muted)}
-.presets{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}.p-btn{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:12px;cursor:pointer}
-textarea{width:100%;height:210px;background:var(--bg);color:#a5f3fc;border:1px solid var(--border);border-radius:6px;padding:10px;font-family:var(--mono);font-size:12px}
-.ctrls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}.run{background:var(--accent);color:#fff;border:none;padding:9px 16px;border-radius:6px;font-weight:600;cursor:pointer}
-.flbl{background:var(--bg);border:1px solid var(--border);padding:8px 11px;border-radius:6px;font-size:12px;cursor:pointer}input[type=file]{display:none}
-.vbox{border-radius:8px;padding:14px;border:1px solid var(--border);background:var(--bg);margin-bottom:12px}
-.v-PASS{border-color:var(--pass);background:rgba(16,185,129,.08)}.v-ALERT_PASS{border-color:var(--warn);background:rgba(245,158,11,.08)}.v-BLOCK{border-color:var(--block);background:rgba(239,68,68,.08)}
-.v-title{font-family:var(--mono);font-size:19px;font-weight:700}.v-PASS .v-title{color:var(--pass)}.v-ALERT_PASS .v-title{color:var(--warn)}.v-BLOCK .v-title{color:var(--block)}
-.meta{margin-top:8px;font-size:12px;color:var(--muted);font-family:var(--mono);word-break:break-all}.vlist{margin-top:8px;padding-left:18px;font-family:var(--mono);font-size:12px;color:#fca5a5}
-footer{margin-top:20px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
-</style></head><body><div class="wrap">
-<header><div><span class="badge">🛡 AMES v2.0 • ZERO-TRUST IN-BROWSER • SHA-256</span><h1 id="t-title">APUMIA DeFi & RWA Invariant Guard</h1><div class="sub" id="t-sub">Intent-to-Execution Pre-Sign Firewall (Calldata DPI + RWA Proof-of-Reserve)</div></div>
-<div class="lang"><button id="btn-ru" class="active" onclick="setLang('ru')">RU</button><button id="btn-en" onclick="setLang('en')">EN</button></div></header>
-<div class="grid"><div class="card"><h2 id="t-mhdr">1. Контур исполнения</h2>
-<div class="modes"><button class="m-btn" id="m-SHADOW_AUDIT" onclick="setMode('SHADOW_AUDIT')"><strong>SHADOW_AUDIT</strong><span>Audit only</span></button>
-<button class="m-btn" id="m-ENFORCE_SOFT" onclick="setMode('ENFORCE_SOFT')"><strong>ENFORCE_SOFT</strong><span>Soft block</span></button>
-<button class="m-btn active" id="m-FAIL_CLOSED" onclick="setMode('FAIL_CLOSED')"><strong>FAIL_CLOSED</strong><span>Strict block</span></button></div>
-<h2 id="t-shdr">2. Тест-кейсы или импорт (.JSON / .CSV)</h2>
-<div class="presets"><button class="p-btn" onclick="loadPreset('rwa_ok')">✅ Valid RWA Mint</button><button class="p-btn" onclick="loadPreset('hijack')">⛔ Prompt Injection (Calldata)</button><button class="p-btn" onclick="loadPreset('rwa_bad')">⛔ RWA Reserve Breach</button></div>
-<textarea id="tx-input" spellcheck="false"></textarea>
-<div class="ctrls"><button class="run" onclick="runEval()" id="t-run">Проверить инварианты</button><label class="flbl"><span id="t-upl">📂 .json / .csv</span><input type="file" accept=".json,.csv" onchange="upFile(event)"/></label></div></div>
-<div class="card"><h2 id="t-rhdr">3. Криптографический вердикт (SHA-256)</h2>
-<div id="vbox" class="vbox"><div class="v-title" id="v-act">READY</div><div class="meta" id="v-meta"></div><ul class="vlist" id="v-list"></ul><div class="meta" id="v-hash"></div></div></div></div>
-<footer><span>APUMIA AI FUND (AMES v2.0)</span><span>100% Zero-Trust Browser Sandbox</span></footer></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>APUMIA DeFi & RWA Invariant Guard — AMES v2.0</title><style>
+body{background:#f8fafc;color:#0f172a;font-family:system-ui,sans-serif;padding:24px;max-width:960px;margin:auto}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:22px;margin-bottom:16px}
+button{background:#fff;border:1px solid #cbd5e1;padding:7px 12px;border-radius:8px;cursor:pointer;margin:3px}
+button.act{background:#0f172a;color:#fff;border-color:#0f172a}button.run{background:#2563eb;color:#fff;border-color:#2563eb;font-weight:600}
+textarea{width:100%;height:190px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;padding:10px;font-family:monospace;margin:10px 0}
+.PASS{color:#059669}.ALERT_PASS{color:#d97706}.BLOCK{color:#dc2626}
+</style></head><body>
+<div style="display:flex;justify-content:space-between;margin-bottom:16px;font-size:13px"><strong>🛡 AMES v2.0 • Zero-Trust In-Browser Sandbox</strong><a href="https://github.io">← Portfolio Registry ↗</a></div>
+<div class="card"><h2>APUMIA DeFi &amp; RWA Invariant Guard</h2><p style="color:#64748b;font-size:14px;margin:6px 0 14px">Pre-Sign Intent-to-Execution Firewall: ABI Calldata DPI &amp; RWA Proof-of-Reserve Verifier</p>
+<div>Mode: <button id="m1" onclick="sm('SHADOW_AUDIT')">SHADOW_AUDIT</button><button id="m2" onclick="sm('ENFORCE_SOFT')">ENFORCE_SOFT</button><button id="m3" class="act" onclick="sm('FAIL_CLOSED')">FAIL_CLOSED</button></div>
+<div style="margin-top:8px">Scenarios: <button onclick="lp(0)">✅ Valid RWA Mint</button><button onclick="lp(1)">✅ Valid DeFi Swap</button><button onclick="lp(2)">⛔ Calldata Hijack</button><button onclick="lp(3)">⛔ RWA Reserve Breach</button></div>
+<textarea id="in"></textarea><button class="run" onclick="ev()">Verify Invariants</button> <input type="file" accept=".json,.csv" onchange="uf(event)"/></div>
+<div class="card"><h3 id="res">READY</h3><pre id="det" style="color:#dc2626;font-size:12px;margin:8px 0"></pre><div id="sh" style="font-family:monospace;font-size:11px;color:#64748b;word-break:break-all"></div></div>
 <script>
-let lang="ru",mode="FAIL_CLOSED";
-const P={
-  rwa_ok:{tx_id:"tx-rwa-001",domain:"RWA_TREASURY",target:"0x9999999999999999999999999999999999999999",mint_delta:250000,current_supply:10000000,custody_reserves:10500000},
-  hijack:{tx_id:"tx-ai-hijack-003",domain:"DEFI_AGENT",target:"0x1111111254fb6c44bac0bed2854e76f90643097d",calldata_recipient:"0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",min_out:1,oracle_out:120000},
-  rwa_bad:{tx_id:"tx-rwa-breach-004",domain:"RWA_TREASURY",target:"0x9999999999999999999999999999999999999999",mint_delta:600000,current_supply:10000000,custody_reserves:10500000}
-};
+let mode="FAIL_CLOSED";
+const P=[
+ {tx_id:"tx-rwa-001",domain:"RWA_TREASURY",target:"0x9999999999999999999999999999999999999999",mint_delta:250000,current_supply:10000000,custody_reserves:10500000,age_sec:45},
+ {tx_id:"tx-defi-002",domain:"DEFI_AGENT",target:"0x1111111254fb6c44bac0bed2854e76f90643097d",recipient:"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",min_out:49800,oracle_out:50000},
+ {tx_id:"tx-hijack-003",domain:"DEFI_AGENT",target:"0x1111111254fb6c44bac0bed2854e76f90643097d",recipient:"0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",min_out:1,oracle_out:120000},
+ {tx_id:"tx-breach-004",domain:"RWA_TREASURY",target:"0x9999999999999999999999999999999999999999",mint_delta:600000,current_supply:10000000,custody_reserves:10500000,age_sec:480}
+];
 const WL=new Set(["0x1111111254fb6c44bac0bed2854e76f90643097d","0x9999999999999999999999999999999999999999"]);
 const RCP=new Set(["0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","0x9999999999999999999999999999999999999999"]);
-function setLang(l){lang=l;document.getElementById("btn-ru").classList.toggle("active",l==="ru");document.getElementById("btn-en").classList.toggle("active",l==="en");document.getElementById("t-run").textContent=l==="ru"?"Проверить инварианты":"Verify Invariants";}
-function setMode(m){mode=m;["SHADOW_AUDIT","ENFORCE_SOFT","FAIL_CLOSED"].forEach(x=>document.getElementById("m-"+x).classList.toggle("active",x===m));runEval();}
-function loadPreset(k){document.getElementById("tx-input").value=JSON.stringify(P[k],null,2);runEval();}
-async function sha256(s){const h=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,"0")).join("");}
-async function runEval(){
-  let tx;try{tx=JSON.parse(document.getElementById("tx-input").value);}catch(e){return;}
-  const v=[];
-  if(!WL.has(String(tx.target||"").toLowerCase()))v.push("UNLISTED_TARGET_CONTRACT");
-  if(tx.domain==="RWA_TREASURY"&&(Number(tx.current_supply)+Number(tx.mint_delta)>Number(tx.custody_reserves)))v.push("RWA_PROOF_OF_RESERVE_BREACH");
-  if(tx.domain==="DEFI_AGENT"){if(tx.calldata_recipient&&!RCP.has(tx.calldata_recipient.toLowerCase()))v.push("CALLDATA_RECIPIENT_HIJACK");if(Number(tx.min_out)<Number(tx.oracle_out)*0.995)v.push("SLIPPAGE_TRAP");}
-  const act=v.length===0?"PASS":(mode==="SHADOW_AUDIT"?"ALERT_PASS":"BLOCK");
-  const hash=await sha256(JSON.stringify({tx_id:tx.tx_id,mode,act,v}));
-  const box=document.getElementById("vbox");box.className="vbox v-"+act;
-  document.getElementById("v-act").textContent=act+" ("+mode+")";
-  document.getElementById("v-meta").textContent="TX: "+(tx.tx_id||"unknown")+" | DOMAIN: "+(tx.domain||"");
-  const ul=document.getElementById("v-list");ul.innerHTML="";v.forEach(x=>{const li=document.createElement("li");li.textContent=x;ul.appendChild(li);});
-  document.getElementById("v-hash").textContent="SHA-256: "+hash;
+function sm(m){mode=m;["SHADOW_AUDIT","ENFORCE_SOFT","FAIL_CLOSED"].forEach((x,i)=>document.getElementById("m"+(i+1)).className=x===m?"act":"");ev();}
+function lp(i){document.getElementById("in").value=JSON.stringify(P[i],null,2);ev();}
+async function ev(){
+ let t;try{t=JSON.parse(document.getElementById("in").value)}catch(e){return}
+ const v=[];
+ if(!WL.has(String(t.target||"").toLowerCase()))v.push("UNLISTED_TARGET_CONTRACT");
+ if(t.domain==="RWA_TREASURY"){if(Number(t.age_sec)>300)v.push("STALE_CUSTODY_ATTESTATION");if(Number(t.current_supply)+Number(t.mint_delta)>Number(t.custody_reserves))v.push("RWA_PROOF_OF_RESERVE_BREACH");}
+ if(t.domain==="DEFI_AGENT"){if(t.recipient&&!RCP.has(t.recipient.toLowerCase()))v.push("CALLDATA_RECIPIENT_HIJACK");if(Number(t.min_out)<Number(t.oracle_out)*0.995)v.push("SLIPPAGE_TRAP_DETECTED");}
+ const a=v.length===0?"PASS":(mode==="SHADOW_AUDIT"?"ALERT_PASS":"BLOCK");
+ const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify({t,mode,a,v})));
+ const hex=Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("");
+ const r=document.getElementById("res");r.className=a;r.textContent=a+" ("+mode+") • Z3 SMT INVARIANT";
+ document.getElementById("det").textContent=v.join("
+");
+ document.getElementById("sh").textContent="SHA-256: "+hex;
 }
-function upFile(e){const f=e.target.files;if(!f)return;const r=new FileReader();r.onload=ev=>{document.getElementById("tx-input").value=ev.target.result;runEval();};r.readAsText(f);}
-loadPreset("rwa_ok");
+function uf(e){const r=new FileReader();r.onload=x=>{document.getElementById("in").value=x.target.result;ev()};r.readAsText(e.target.files);}lp(0);
 </script></body></html>
