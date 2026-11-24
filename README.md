@@ -1,2 +1,14 @@
-# APUMIA DeFi & RWA Invariant Guard (`apumia-defi-guard-demo`)
-Zero-Trust Browser Sandbox (AMES v2.0): https://github.io
+# APUMIA DeFi & RWA Invariant Guard
+
+**Zero-Trust pre-execution transaction firewall and RWA Proof-of-Reserve invariant verifier for autonomous DeFi agents and institutional vaults.**
+
+Live Browser Sandbox: **[https://github.io](https://github.io)**
+
+## Key Capabilities
+- **Pre-Execution Calldata & Slippage Firewall:** Blocks malicious approvals, excessive slippage, and stale oracle prices before transaction signing.
+- **RWA Proof-of-Reserve Gate:** Halts token minting if off-chain custodian attestation timestamps or backing ratios breach policy invariants.
+- **Zero-Key-Access Sidecar:** Runs air-gapped inside your signing pipeline with SHA-256 audit receipts (VARA / MAS / DORA ready).
+
+## Get the Commercial DeFi & RWA Guard Kit ($199)
+Includes the full Python invariant engine (`engine_v2.py`), standalone interactive sandbox, and commercial license.
+Contact **apumiaaifund@gmail.com** or visit **https://github.io**.
