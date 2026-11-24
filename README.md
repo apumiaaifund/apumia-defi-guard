@@ -11,4 +11,4 @@ Live Browser Sandbox: **[https://github.io](https://github.io)**
 
 ## Get the Commercial DeFi & RWA Guard Kit ($199)
 Includes the full Python invariant engine (`engine_v2.py`), standalone interactive sandbox, and commercial license.
-Contact **apumiaaifund@gmail.com** or visit **https://github.io**.
+Get instant access via Stripe, Apple Pay, or PayPal: **[Buy APUMIA DeFi & RWA Invariant Guard ($199) ↗](https://app.lava.top/products/519c4883-9dc9-4d4d-9f19-7e7f4355a75a)**
